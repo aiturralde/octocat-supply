@@ -21,13 +21,91 @@ const fetchProducts = async (): Promise<Product[]> => {
   return data;
 };
 
+interface StarRatingProps {
+  productId: number;
+  rating: number;
+  hoverRating: number;
+  onRate: (productId: number, star: number) => void;
+  onHover: (productId: number, star: number) => void;
+  onLeave: (productId: number) => void;
+}
+
+function StarRating({ productId, rating, hoverRating, onRate, onHover, onLeave }: StarRatingProps) {
+  const activeRating = hoverRating || rating;
+  return (
+    <div
+      className="flex items-center space-x-1"
+      role="group"
+      aria-label={`Rate this product. Current rating: ${rating} out of 5 stars`}
+      onMouseLeave={() => onLeave(productId)}
+    >
+      {[1, 2, 3, 4, 5].map((star) => {
+        const filled = star <= activeRating;
+        return (
+          <button
+            key={star}
+            type="button"
+            onClick={() => onRate(productId, star)}
+            onMouseEnter={() => onHover(productId, star)}
+            aria-label={`Rate ${star} star${star !== 1 ? 's' : ''}`}
+            aria-pressed={star <= rating}
+            className={[
+              'w-9 h-9 flex items-center justify-center rounded-full',
+              'transition-all duration-150 ease-in-out',
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-1',
+              filled
+                ? 'text-red-500 scale-110 drop-shadow-[0_0_6px_rgba(239,68,68,0.85)] motion-safe:animate-pulse'
+                : 'text-red-300 hover:text-red-500 hover:scale-125 hover:drop-shadow-[0_0_8px_rgba(239,68,68,0.9)]',
+            ].join(' ')}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill={filled ? 'currentColor' : 'none'}
+              stroke="currentColor"
+              strokeWidth={filled ? '0' : '1.5'}
+              className="w-7 h-7"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"
+              />
+            </svg>
+          </button>
+        );
+      })}
+      {rating > 0 && (
+        <span className="ml-1 text-sm font-semibold text-red-500">
+          {rating}/5
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function Products() {
   const [quantities, setQuantities] = useState<Record<number, number>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [ratings, setRatings] = useState<Record<number, number>>({});
+  const [hoverRatings, setHoverRatings] = useState<Record<number, number>>({});
   const { data: products, isLoading, error } = useQuery('products', fetchProducts);
   const { darkMode } = useTheme();
+
+  const handleRate = (productId: number, star: number) => {
+    setRatings((prev) => ({ ...prev, [productId]: star }));
+  };
+
+  const handleHoverRating = (productId: number, star: number) => {
+    setHoverRatings((prev) => ({ ...prev, [productId]: star }));
+  };
+
+  const handleLeaveRating = (productId: number) => {
+    setHoverRatings((prev) => ({ ...prev, [productId]: 0 }));
+  };
 
   const filteredProducts = products?.filter(
     (product) =>
@@ -185,10 +263,23 @@ export default function Products() {
                     {product.name}
                   </h3>
                   <p
-                    className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-4 flex-grow transition-colors duration-300`}
+                    className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-3 flex-grow transition-colors duration-300`}
                   >
                     {product.description}
                   </p>
+                  <div className="mb-3">
+                    <p className={`text-xs font-semibold uppercase tracking-wide mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Your Rating
+                    </p>
+                    <StarRating
+                      productId={product.productId}
+                      rating={ratings[product.productId] || 0}
+                      hoverRating={hoverRatings[product.productId] || 0}
+                      onRate={handleRate}
+                      onHover={handleHoverRating}
+                      onLeave={handleLeaveRating}
+                    />
+                  </div>
                   <div className="space-y-4 mt-auto">
                     <div className="flex justify-between items-center">
                       {hasDiscount ? (
@@ -297,10 +388,23 @@ export default function Products() {
               {selectedProduct.name}
             </h2>
             <p
-              className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-lg transition-colors duration-300`}
+              className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-lg mb-6 transition-colors duration-300`}
             >
               {selectedProduct.description}
             </p>
+            <div>
+              <p className={`text-sm font-semibold uppercase tracking-wide mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                Your Rating
+              </p>
+              <StarRating
+                productId={selectedProduct.productId}
+                rating={ratings[selectedProduct.productId] || 0}
+                hoverRating={hoverRatings[selectedProduct.productId] || 0}
+                onRate={handleRate}
+                onHover={handleHoverRating}
+                onLeave={handleLeaveRating}
+              />
+            </div>
           </div>
         </div>
       )}
