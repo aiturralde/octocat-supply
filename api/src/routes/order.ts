@@ -97,6 +97,32 @@
  *         description: Order deleted successfully
  *       404:
  *         description: Order not found
+ *
+ * /api/orders/count/branch/{branchId}:
+ *   get:
+ *     summary: Get total order count for a branch
+ *     tags: [Orders]
+ *     parameters:
+ *       - in: path
+ *         name: branchId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Branch ID
+ *     responses:
+ *       200:
+ *         description: Order count for the branch
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 branchId:
+ *                   type: integer
+ *                 count:
+ *                   type: integer
+ *       400:
+ *         description: Invalid branch ID
  */
 
 import express from 'express';
@@ -130,6 +156,23 @@ router.get('/', async (req, res, next) => {
     }
 
     res.json(orders);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get order count by branch ID
+router.get('/count/branch/:branchId', async (req, res, next) => {
+  try {
+    const branchId = parseInt(req.params.branchId, 10);
+    if (Number.isNaN(branchId)) {
+      res.status(400).json({ error: 'Invalid branch ID' });
+      return;
+    }
+
+    const repo = await getOrdersRepository();
+    const count = await repo.countByBranch(branchId);
+    res.json({ branchId, count });
   } catch (error) {
     next(error);
   }

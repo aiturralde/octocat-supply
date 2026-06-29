@@ -26,6 +26,19 @@ export class OrdersRepository {
     }
   }
 
+  // Count orders by branch
+  async countByBranch(branchId: number): Promise<number> {
+    try {
+      const result = await this.db.get<{ count: number }>(
+        'SELECT COUNT(*) as count FROM orders WHERE branch_id = ?',
+        [branchId],
+      );
+      return result?.count || 0;
+    } catch (error) {
+      handleDatabaseError(error);
+    }
+  }
+
   /**
    * Get order by ID
    */

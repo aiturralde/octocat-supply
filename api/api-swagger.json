@@ -620,6 +620,48 @@
                 }
             }
         },
+        "/api/orders/count/branch/{branchId}": {
+            "get": {
+                "summary": "Get total order count for a branch",
+                "tags": [
+                    "Orders"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "branchId",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Branch ID"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Order count for the branch",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "branchId": {
+                                            "type": "integer"
+                                        },
+                                        "count": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid branch ID"
+                    }
+                }
+            }
+        },
         "/api/order-details": {
             "get": {
                 "summary": "Returns all order details",
