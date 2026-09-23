@@ -12,6 +12,46 @@ TypeScript monorepo with:
 
 Refer to `docs/architecture.md` and `docs/sqlite-integration.md` for deeper details. Avoid restating them in reviews and link instead.
 
+## Language-Specific Best Practices
+This repo is TypeScript-first (no Python/Java/Go/C# source is present despite the Makefile's template scaffolding for those backends). Path-scoped files under `.github/instructions/*.instructions.md` cover API/database/frontend review specifics; the rules below are baseline language conventions to apply everywhere they're relevant.
+
+### TypeScript / JavaScript (api/, frontend/)
+- Keep `strict` mode enabled in `tsconfig.json` (and prefer additional flags like `noImplicitAny`, `strictNullChecks`) rather than loosening it to silence errors.
+- Let TypeScript infer types for simple locals; add explicit annotations for function parameters, return types, and public API surfaces.
+- Avoid `any`; prefer `unknown` plus narrowing when a type is genuinely unknown, or a precise union/generic.
+- Use `interface` for extensible object shapes (props, DTOs); use `type` for unions, tuples, and mapped/utility types.
+- Prefer ES module `import`/`export`; keep 2-space indentation and existing ESLint (`typescript-eslint`) + Prettier conventions in `eslint.config.mjs`/`eslint.config.js`.
+
+### SQL (database/migrations, database/seed)
+- Name migrations with a strict sequential/number prefix; never edit a previously-applied migration—add a new one.
+- Use `CREATE TABLE IF NOT EXISTS` / `CREATE INDEX IF NOT EXISTS` where feasible for idempotency, and wrap multi-statement migrations in a transaction.
+- Never string-concatenate user input into SQL in application code—always use parameterized queries/prepared statements.
+- Keep seed scripts re-runnable (`INSERT OR IGNORE`/upsert) and deterministic (explicit IDs) since other seed files reference them.
+
+### Bicep / Azure IaC (infra/)
+- Annotate every parameter and resource with `@description(...)`; avoid hardcoded secrets—use `@secure()` params, Key Vault references, or managed identities instead.
+- Apply least-privilege RBAC (scope role assignments narrowly; avoid subscription-level `Owner`/`Contributor`).
+- Keep resource declarations idempotent/deterministic (no imperative scripting); pin explicit API versions per resource.
+- Only output non-sensitive values (IDs, names, URLs)—never secrets or connection strings.
+
+### Shell scripts (entrypoint.sh, demo/, .github/hooks/)
+- Start scripts with `set -euo pipefail`; quote all variable and command substitutions (`"$var"`, `"$(cmd)"`).
+- Validate required env vars/arguments early and fail fast with a clear message and non-zero exit code.
+- Avoid parsing `ls`; use globs or `find -print0`. Prefer `#!/usr/bin/env bash` and `[[ ]]` conditionals.
+
+### Dockerfiles (api/, frontend/)
+- Use multi-stage builds; copy dependency manifests and install before copying full source to maximize layer caching.
+- Run as a non-root user, pin base image tags (avoid `latest`), and keep `.dockerignore` current to shrink context and avoid leaking secrets.
+
+### YAML / GitHub Actions (.github/workflows, .github/actions)
+- Default `permissions:` to least privilege (e.g., `contents: read`) and elevate only specific jobs that need it.
+- Pin third-party actions to a commit SHA (version tag at minimum for first-party actions); never inline secrets in YAML.
+- Cache dependencies keyed on the lockfile hash; prefer reusable/composite workflows over duplicated job logic.
+
+### Markdown / Documentation (docs/, README.md)
+- Keep headings hierarchical (one `#` per doc) and use relative links for internal references.
+- Update the relevant doc in the same PR as any behavior change it describes.
+
 ## General Review Guidance
 When generating suggestions:
 1. Prefer incremental, minimal diffs; preserve existing style and naming.
