@@ -16,7 +16,7 @@ const PRODUCT = 'SmartFeeder One';
 const ratingSummary = (page: Page) =>
   page
     .locator(`[role="radiogroup"][aria-label="Star review for ${PRODUCT}"]`)
-    .locator('xpath=following-sibling::span');
+    .locator('~ [data-testid="star-rating-value"]');
 
 const starButton = (star: number) =>
   `button[aria-label="Rate ${PRODUCT} ${star} ${star === 1 ? 'star' : 'stars'}"]`;
@@ -60,10 +60,14 @@ test.describe('Product star reviews', () => {
   });
 
   test('Products start without a rating', async ({ page }) => {
-    const rating = ratingSummary(page);
+    // Then every product prompts me to rate it
+    const summaries = page.locator('[data-testid="star-rating-value"]');
+    const count = await summaries.count();
+    expect(count).toBeGreaterThan(0);
 
-    // Then the product prompts me to rate it
-    await expect(rating).toContainText('Rate it');
+    for (let index = 0; index < count; index++) {
+      await expect(summaries.nth(index)).toHaveText('Rate it');
+    }
   });
 
   test('Rate a product with the keyboard', async ({ page }) => {

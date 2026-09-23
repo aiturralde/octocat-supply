@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+
 interface StarRatingProps {
   productId: number;
   productName: string;
@@ -15,6 +17,8 @@ export default function StarRating({
   onRate,
   darkMode,
 }: StarRatingProps) {
+  const starRefs = useRef<Record<number, HTMLButtonElement | null>>({});
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, star: number) => {
     const moves: Record<string, number> = {
       ArrowRight: star === STARS.length ? 1 : star + 1,
@@ -24,14 +28,14 @@ export default function StarRating({
       Home: 1,
       End: STARS.length,
     };
-    const next = moves[event.key];
-    if (!next) {
+    if (!(event.key in moves)) {
       return;
     }
 
+    const next = moves[event.key];
     event.preventDefault();
     onRate(next);
-    document.getElementById(`rate-${productId}-${next}`)?.focus();
+    starRefs.current[next]?.focus();
   };
 
   return (
@@ -52,6 +56,9 @@ export default function StarRating({
               aria-checked={star === rating}
               aria-label={`Rate ${productName} ${star} ${star === 1 ? 'star' : 'stars'}`}
               id={`rate-${productId}-${star}`}
+              ref={(element) => {
+                starRefs.current[star] = element;
+              }}
               tabIndex={star === rating || (rating === 0 && star === 1) ? 0 : -1}
               onClick={() => onRate(star)}
               onKeyDown={(event) => handleKeyDown(event, star)}
@@ -71,6 +78,7 @@ export default function StarRating({
       <span
         className={`text-sm whitespace-nowrap ${darkMode ? 'text-gray-400' : 'text-gray-600'} transition-colors duration-300`}
         id={`star-rating-value-${productId}`}
+        data-testid="star-rating-value"
       >
         {rating > 0 ? `${rating} of 5` : 'Rate it'}
       </span>
