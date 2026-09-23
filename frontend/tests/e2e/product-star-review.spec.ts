@@ -14,7 +14,7 @@ import { test, expect, type Page } from '@playwright/test';
 const PRODUCT = 'SmartFeeder One';
 
 const productCard = (page: Page) =>
-  page.locator('div', { has: page.locator(`h3:text-is("${PRODUCT}")`) }).last();
+  page.locator('[data-testid="product-card"]', { has: page.locator(`h3:text-is("${PRODUCT}")`) });
 
 const ratingSummary = (page: Page) =>
   productCard(page).locator('[data-testid="star-rating-value"]');

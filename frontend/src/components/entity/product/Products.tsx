@@ -169,6 +169,7 @@ export default function Products() {
               return (
                 <div
                   key={product.productId}
+                  data-testid="product-card"
                   className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg overflow-hidden shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-[0_0_25px_rgba(118,184,82,0.3)] flex flex-col`}
                 >
                   <div

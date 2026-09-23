@@ -19,11 +19,10 @@ export default function StarRating({
 }: StarRatingProps) {
   const starRefs = useRef<Record<number, HTMLButtonElement | null>>({});
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, star: number) => {
-    // While unrated the first arrow key selects an edge star instead of stepping from it.
-    const current = rating === 0 ? 0 : star;
-    const forward = current === STARS.length ? 1 : current + 1;
-    const backward = current <= 1 ? STARS.length : current - 1;
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    // While unrated (rating 0) the first arrow key selects an edge star instead of stepping.
+    const forward = rating === STARS.length ? 1 : rating + 1;
+    const backward = rating <= 1 ? STARS.length : rating - 1;
     const moves: Record<string, number> = {
       ArrowRight: forward,
       ArrowDown: forward,
@@ -68,7 +67,7 @@ export default function StarRating({
               }}
               tabIndex={isTabStop ? 0 : -1}
               onClick={() => onRate(star)}
-              onKeyDown={(event) => handleKeyDown(event, star)}
+              onKeyDown={handleKeyDown}
               className={`w-11 h-11 flex items-center justify-center rounded-full text-3xl leading-none transform transition-all duration-200 hover:scale-125 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${
                 darkMode ? 'focus:ring-offset-gray-800' : 'focus:ring-offset-white'
               } ${
