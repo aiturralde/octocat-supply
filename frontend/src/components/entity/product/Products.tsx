@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useQuery } from 'react-query';
 import { api } from '../../../api/config';
 import { useTheme } from '../../../context/ThemeContext';
+import StarRating from './StarRating';
 
 interface Product {
   productId: number;
@@ -23,6 +24,7 @@ const fetchProducts = async (): Promise<Product[]> => {
 
 export default function Products() {
   const [quantities, setQuantities] = useState<Record<number, number>>({});
+  const [ratings, setRatings] = useState<Record<number, number>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -59,6 +61,13 @@ export default function Products() {
         [productId]: 0,
       }));
     }
+  };
+
+  const handleRateProduct = (productId: number, rating: number) => {
+    setRatings((prev) => ({
+      ...prev,
+      [productId]: rating,
+    }));
   };
 
   const handleProductClick = (product: Product) => {
@@ -190,6 +199,14 @@ export default function Products() {
                     {product.description}
                   </p>
                   <div className="space-y-4 mt-auto">
+                    <StarRating
+                      productId={product.productId}
+                      productName={product.name}
+                      rating={ratings[product.productId] || 0}
+                      onRate={(rating) => handleRateProduct(product.productId, rating)}
+                      darkMode={darkMode}
+                    />
+
                     <div className="flex justify-between items-center">
                       {hasDiscount ? (
                         <div>
