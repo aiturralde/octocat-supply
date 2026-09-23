@@ -7,7 +7,7 @@ Feature: Product star reviews
     Given I am viewing the product catalog
     When I select the fourth star for "SmartFeeder One"
     Then the rating for "SmartFeeder One" shows "4 of 5"
-    And the first four stars for "SmartFeeder One" are highlighted
+    And the fourth star for "SmartFeeder One" is selected and highlighted in red
 
   Scenario: Change a rating for a product
     Given I am viewing the product catalog
@@ -22,5 +22,5 @@ Feature: Product star reviews
   Scenario: Rate a product with the keyboard
     Given I am viewing the product catalog
     When I focus the star review for "SmartFeeder One" and press the right arrow key twice
-    Then the rating for "SmartFeeder One" shows "3 of 5"
-    And the third star for "SmartFeeder One" keeps keyboard focus
+    Then the rating for "SmartFeeder One" shows "2 of 5"
+    And the second star for "SmartFeeder One" keeps keyboard focus

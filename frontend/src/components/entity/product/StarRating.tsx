@@ -20,11 +20,15 @@ export default function StarRating({
   const starRefs = useRef<Record<number, HTMLButtonElement | null>>({});
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, star: number) => {
+    // While unrated the first arrow key selects an edge star instead of stepping from it.
+    const current = rating === 0 ? 0 : star;
+    const forward = current === STARS.length ? 1 : current + 1;
+    const backward = current <= 1 ? STARS.length : current - 1;
     const moves: Record<string, number> = {
-      ArrowRight: star === STARS.length ? 1 : star + 1,
-      ArrowDown: star === STARS.length ? 1 : star + 1,
-      ArrowLeft: star === 1 ? STARS.length : star - 1,
-      ArrowUp: star === 1 ? STARS.length : star - 1,
+      ArrowRight: forward,
+      ArrowDown: forward,
+      ArrowLeft: backward,
+      ArrowUp: backward,
       Home: 1,
       End: STARS.length,
     };
@@ -44,10 +48,13 @@ export default function StarRating({
         className="flex items-center gap-1"
         role="radiogroup"
         aria-label={`Star review for ${productName}`}
+        aria-describedby={`star-rating-value-${productId}`}
         id={`star-rating-${productId}`}
       >
         {STARS.map((star) => {
           const isSelected = star <= rating;
+          // Only one star is tabbable; the first star is the entry point while unrated.
+          const isTabStop = star === rating || (rating === 0 && star === 1);
           return (
             <button
               key={star}
@@ -59,7 +66,7 @@ export default function StarRating({
               ref={(element) => {
                 starRefs.current[star] = element;
               }}
-              tabIndex={star === rating || (rating === 0 && star === 1) ? 0 : -1}
+              tabIndex={isTabStop ? 0 : -1}
               onClick={() => onRate(star)}
               onKeyDown={(event) => handleKeyDown(event, star)}
               className={`w-11 h-11 flex items-center justify-center rounded-full text-3xl leading-none transform transition-all duration-200 hover:scale-125 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${
