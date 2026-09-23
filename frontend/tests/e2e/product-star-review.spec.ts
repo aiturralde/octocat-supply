@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 /**
  * Product star review E2E tests
@@ -8,9 +8,15 @@ import { test, expect } from '@playwright/test';
  * - Rating a product from the product catalog
  * - Changing an existing rating
  * - Default unrated state
+ * - Keyboard navigation of the star review control
  */
 
 const PRODUCT = 'SmartFeeder One';
+
+const ratingSummary = (page: Page) =>
+  page
+    .locator(`[role="radiogroup"][aria-label="Star review for ${PRODUCT}"]`)
+    .locator('xpath=following-sibling::span');
 
 const starButton = (star: number) =>
   `button[aria-label="Rate ${PRODUCT} ${star} ${star === 1 ? 'star' : 'stars'}"]`;
@@ -23,7 +29,7 @@ test.describe('Product star reviews', () => {
   });
 
   test('Rate a product with stars', async ({ page }) => {
-    const rating = page.locator(`[role="radiogroup"][aria-label="Star review for ${PRODUCT}"]`);
+    const rating = ratingSummary(page);
 
     // When I select the fourth star
     await page.click(starButton(4));
@@ -39,7 +45,7 @@ test.describe('Product star reviews', () => {
   });
 
   test('Change a rating for a product', async ({ page }) => {
-    const rating = page.locator(`[role="radiogroup"][aria-label="Star review for ${PRODUCT}"]`);
+    const rating = ratingSummary(page);
 
     // Given I have rated the product with four stars
     await page.click(starButton(4));
@@ -54,9 +60,22 @@ test.describe('Product star reviews', () => {
   });
 
   test('Products start without a rating', async ({ page }) => {
-    const rating = page.locator(`[role="radiogroup"][aria-label="Star review for ${PRODUCT}"]`);
+    const rating = ratingSummary(page);
 
     // Then the product prompts me to rate it
     await expect(rating).toContainText('Rate it');
+  });
+
+  test('Rate a product with the keyboard', async ({ page }) => {
+    const rating = ratingSummary(page);
+
+    // When I focus the star review and use the arrow keys
+    await page.locator(starButton(1)).focus();
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowRight');
+
+    // Then the rating shows "3 of 5"
+    await expect(rating).toHaveText('3 of 5');
+    await expect(page.locator(starButton(3))).toBeFocused();
   });
 });

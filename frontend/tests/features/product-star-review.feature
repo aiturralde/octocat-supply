@@ -18,3 +18,9 @@ Feature: Product star reviews
   Scenario: Products start without a rating
     Given I am viewing the product catalog
     Then every product prompts me to "Rate it"
+
+  Scenario: Rate a product with the keyboard
+    Given I am viewing the product catalog
+    When I focus the star review for "SmartFeeder One" and press the right arrow key twice
+    Then the rating for "SmartFeeder One" shows "3 of 5"
+    And the third star for "SmartFeeder One" keeps keyboard focus
